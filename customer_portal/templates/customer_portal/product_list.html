@@ -3,36 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Products</title>
+    <title>Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold mb-6">Available Products</h1>
-        
-        {% if messages %}
-        <div class="mb-4">
-            {% for message in messages %}
-            <div class="p-4 rounded {% if message.tags == 'error' %}bg-red-200 text-red-800{% else %}bg-green-200 text-green-800{% endif %}">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
+<body class="bg-gray-100 min-h-screen">
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {% for product in products %}
-            <div class="bg-white p-6 rounded shadow">
-                <h2 class="text-xl font-semibold">{{ product.name }}</h2>
-                <p class="text-gray-600 mt-2">{{ product.description }}</p>
-                <p class="text-lg font-bold mt-4">${{ product.price }}</p>
-                <p class="text-sm text-gray-500">In stock: {{ product.stock }}</p>
-                <a href="{% url 'place_order' product.id %}" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Buy Now</a>
+    <!-- Navbar -->
+    <nav class="bg-blue-600 text-white px-8 py-4 flex items-center justify-between shadow">
+        <a href="{% url 'product_list' %}" class="text-2xl font-bold">🛒 ShopDjango</a>
+        <form method="get" action="{% url 'product_list' %}" class="flex gap-2">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search products..."
+                   class="px-3 py-2 rounded text-gray-800 w-64 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            <button type="submit" class="bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300">Search</button>
+        </form>
+    </nav>
+
+    <div class="max-w-6xl mx-auto py-8 px-4 flex gap-8">
+
+        <!-- Sidebar: Categories -->
+        <aside class="w-48 flex-shrink-0">
+            <h2 class="font-bold text-gray-700 mb-3 uppercase text-sm tracking-wide">Categories</h2>
+            <ul class="space-y-1">
+                <li>
+                    <a href="{% url 'product_list' %}"
+                       class="block px-3 py-2 rounded text-sm {% if not selected_category %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-200{% endif %}">
+                        All Products
+                    </a>
+                </li>
+                {% for cat in categories %}
+                <li>
+                    <a href="{% url 'product_list' %}?category={{ cat.name }}"
+                       class="block px-3 py-2 rounded text-sm {% if selected_category.id == cat.id %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-200{% endif %}">
+                        {{ cat.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1">
+
+            <!-- Alerts -->
+            {% if messages %}
+            <div class="mb-4 space-y-2">
+                {% for message in messages %}
+                <div class="p-3 rounded {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <p>No products available right now.</p>
-            {% endfor %}
-        </div>
+            {% endif %}
+
+            <!-- Heading -->
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">
+                {% if query %}
+                    Search results for "{{ query }}"
+                {% elif selected_category %}
+                    {{ selected_category.name }}
+                {% else %}
+                    All Products
+                {% endif %}
+            </h1>
+
+            <!-- Product Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for product in products %}
+                <div class="bg-white rounded-lg shadow hover:shadow-md transition p-5 flex flex-col">
+                    {% if product.category %}
+                    <span class="text-xs text-blue-600 font-semibold uppercase mb-1">{{ product.category.name }}</span>
+                    {% endif %}
+                    <h2 class="text-lg font-semibold text-gray-800">{{ product.name }}</h2>
+                    <p class="text-gray-500 text-sm mt-1 flex-1">{{ product.description|truncatewords:15 }}</p>
+
+                    <!-- Rating display -->
+                    {% with avg=product.average_rating count=product.review_count %}
+                    <div class="mt-2 text-sm text-yellow-500">
+                        {% if avg %}
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= avg %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                            <span class="text-gray-500 ml-1">{{ avg }} ({{ count }} review{{ count|pluralize }})</span>
+                        {% else %}
+                            <span class="text-gray-400">No reviews yet</span>
+                        {% endif %}
+                    </div>
+                    {% endwith %}
+
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-xl font-bold text-blue-600">${{ product.price }}</span>
+                        <span class="text-xs text-gray-400">{{ product.stock }} in stock</span>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <a href="{% url 'product_detail' product.id %}" class="flex-1 text-center bg-gray-100 text-gray-700 px-3 py-2 rounded hover:bg-gray-200 text-sm">Details</a>
+                        <a href="{% url 'place_order' product.id %}" class="flex-1 text-center bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 text-sm">Buy Now</a>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="col-span-3 text-gray-500">No products found. Try a different search or category.</p>
+                {% endfor %}
+            </div>
+        </main>
     </div>
 </body>
 </html>
