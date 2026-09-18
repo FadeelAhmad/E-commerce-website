@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Products</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Available Products</h1>
+        
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="p-4 rounded {% if message.tags == 'error' %}bg-red-200 text-red-800{% else %}bg-green-200 text-green-800{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for product in products %}
+            <div class="bg-white p-6 rounded shadow">
+                <h2 class="text-xl font-semibold">{{ product.name }}</h2>
+                <p class="text-gray-600 mt-2">{{ product.description }}</p>
+                <p class="text-lg font-bold mt-4">${{ product.price }}</p>
+                <p class="text-sm text-gray-500">In stock: {{ product.stock }}</p>
+                <a href="{% url 'place_order' product.id %}" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Buy Now</a>
+            </div>
+            {% empty %}
+            <p>No products available right now.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

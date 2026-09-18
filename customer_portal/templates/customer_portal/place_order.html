@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place Order</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-md mx-auto bg-white p-6 rounded shadow">
+        <h1 class="text-2xl font-bold mb-4">Order {{ product.name }}</h1>
+        <p class="text-gray-600 mb-4">{{ product.description }}</p>
+        <p class="text-lg font-bold mb-4">${{ product.price }}</p>
+        <p class="text-sm text-gray-500 mb-4">Available stock: {{ product.stock }}</p>
+        
+        <form method="post" action="{% url 'place_order' product.id %}">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Quantity</label>
+                <input type="number" name="quantity" min="1" max="{{ product.stock }}" value="1" class="w-full border p-2 rounded">
+            </div>
+            <div class="flex gap-4">
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Place Order</button>
+                <a href="{% url 'product_list' %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
